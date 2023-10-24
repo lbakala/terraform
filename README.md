@@ -31,7 +31,24 @@ Elle se fait dans deux fichiers situés à la racine du projet.
       Avec deux disques: 10GB et 10GB
       L'acces à la VM est possible en passant par un bastion (host + user + public key auth)
  
+      Reponse:
+      vm_name_1         = "k8s-master" 
+      vm_name_2         = "k8s-node-1" 
+      vm_name_3         = "k8s-node-2" 
+      vm_memory         = 4096
+      vm_vcpu           = 4
+      vm_network        = "network"
+      vm_disk1_source   = "/opt/storage/template/template-4x-no-swap.qcow2"
+      vm_disk2_size     = 10737418240
+      vm_disk           = ""
       
+      bastion_host      = "routeur"
+      bastion_user      = "user"
+      user              = "user"
+      #host_password     = "xxxxxx" A déclarer au niveau system"export TF_VAR_host_password=xxxxx"
+      pubkey            = "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAACAQDWpdWKPH5rlFD47KTYkMz/...."
+      destination       = "/home/user/.ssh/authorized_keys"
+
             
       
   
