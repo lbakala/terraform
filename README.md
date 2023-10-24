@@ -5,14 +5,15 @@ Terraform est l'un des outils indispensables pour le provisionning des briques n
 
 L'architect a mené une reflexion et a construit une infrastructure as a code prêt à l'emploi pour repondre à un besoin.
 
-Ici, le code permet de créer :
-      - 3 machines virtuelles sur KVM
-      - Créer un utilisateur user
-      - Installer la clé publique SSH pour user
-      - Désactiver IPV6
-      - Ajouter la configuration ssh permettant de se connecter à chacune des machines via un bastion, dans /etc/ssh/ssh_config.d/
-      - Réserver l'ip attribuer dans le serveur DHCP
-      - Assigner le nom DNS dans le serveur BIN9
+Ici, le code permet de :
+- Créer 3 machines virtuelles sur KVM
+- Créer un utilisateur user
+- Installer la clé publique SSH pour user
+- Désactiver IPV6
+- Ajouter la configuration ssh permettant de se connecter à chacune des machines via un bastion, dans /etc/ssh/ssh_config.d/
+- Réserver l'ip attribuer dans le serveur DHCP
+- Assigner le nom DNS dans le serveur BIN9
+
 
   
 
