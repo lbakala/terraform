@@ -14,7 +14,12 @@ Ici, le code permet de :
 - Réserver l'ip attribuer dans le serveur DHCP
 - Assigner le nom DNS dans le serveur BIN9
 
-
+## 1 - Configuration des machines
+      memory: 4GB
+      vcpu: 4
+      disk_system: 10GB
+      disk_data: 10GB
+      
   
 
 
