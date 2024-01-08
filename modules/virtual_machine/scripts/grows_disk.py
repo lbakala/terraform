@@ -19,7 +19,9 @@ response = requests.post(url, data=json.dumps(data), headers=headers)
 output = {
     "old_disk": disk1,
     "new_disk": disk2
-}
+} 
+
+
 
 output_json = json.dumps(output,indent=2)
 print(output_json)
