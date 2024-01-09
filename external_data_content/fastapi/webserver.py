@@ -12,7 +12,7 @@ class DataCustom(BaseModel):
     pub_key: str
     new_disk: str
 class ServerName(BaseModel):
-    server_name = str
+    server_name: str
 @app.post("/growfs/")
 async def growfs(disk: VolumeChange):
     old_disk = disk.old_disk
