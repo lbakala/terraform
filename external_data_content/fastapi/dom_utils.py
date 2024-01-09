@@ -72,6 +72,6 @@ def add_record(vm_name):
     with open('routeur.yaml','r') as ansible_routeur_host_vars_file:
         host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
     getDom_info = dom_getIpaddress(vm_name)    
-    host_vars['dhcp'].append({'serverName': vm_name ,'macAddress':getDom_info['mac']  ,'ipAddress':getDom_info['ip'] })
+    host_vars['dhcp'].append({'serverName':vm_name ,'macAddress':getDom_info['mac'] ,'ipAddress':getDom_info['ip']})
     with open('routeur.yaml','w') as ansible_routeur_host_vars_file:
         yaml.safe_dump(host_vars, ansible_routeur_host_vars_file)
