@@ -11,6 +11,8 @@ class VolumeChange(BaseModel):
 class DataCustom(BaseModel):
     pub_key: str
     new_disk: str
+class ServerName(BaseModel):
+    server_name = str
 @app.post("/growfs/")
 async def growfs(disk: VolumeChange):
     old_disk = disk.old_disk
@@ -22,27 +24,21 @@ async def growfs(disk: VolumeChange):
 
 @app.post("/custom/")
 async def custom(cady: DataCustom):
-      pub_key = cady.pub_key
-      new_disk = cady.new_disk
-      p = Path(new_disk)
-      if dom_utils.dom_status(str(p.name.split('.')[0])) == 1:
-          dom_utils.dom_shutdown(p)
-      subprocess.Popen(["/var/www/html/pushpubkey.sh", pub_key, new_disk])  
+    pub_key = cady.pub_key
+    new_disk = cady.new_disk
+    p = Path(new_disk)
+    if dom_utils.dom_status(str(p.name.split('.')[0])) == 1:
+        dom_utils.dom_shutdown(p)
+    subprocess.Popen(["/var/www/html/pushpubkey.sh", pub_key, new_disk])  
 
-@app.post("/provision")
+@app.post("/provision/")
 async def provision(server: ServerName):
-    
-      
-          
+    server_name = server.server_name
+    dom_utils.dom_start(server_name)
+    dom_utils.add_record(server_name)
+    dom_utils.dom_start(server_name)
+    subprocess.Popen(["/var/www/html/ansible-playbook.sh", server_name]) 
 
-
-
-#add publickey to disk image << en cours ...
-#start dom << ok
-#pause << ok
-#get ip adresse << ok
-#add dns ans dhcp info to routeur host_vars ansible << en cours ...
-#run ansible-playbook to do change 
  
 if __name__ == "__main__":
     import uvicorn
