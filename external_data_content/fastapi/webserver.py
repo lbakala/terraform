@@ -38,7 +38,6 @@ async def provision(server: ServerName):
     dom_utils.add_record(server_name)
     dom_utils.dom_start(server_name)
     subprocess.Popen(["/var/www/html/ansible-playbook.sh", server_name]) 
-
  
 if __name__ == "__main__":
     import uvicorn
