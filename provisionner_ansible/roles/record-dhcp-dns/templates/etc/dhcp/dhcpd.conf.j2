@@ -1,0 +1,7 @@
+#DHCP
+{% for resources in dhcp|default([]) %}
+host {{ resources.serverName }} {
+hardware ethernet {{ resources.macAddress }};
+fixed-address {{ resources.ipAddress }};
+}
+{% endfor %}

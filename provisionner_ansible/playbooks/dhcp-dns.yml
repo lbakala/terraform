@@ -1,0 +1,5 @@
+---
+- hosts: routeur
+  become: true
+  roles:
+    - record-dhcp-dns

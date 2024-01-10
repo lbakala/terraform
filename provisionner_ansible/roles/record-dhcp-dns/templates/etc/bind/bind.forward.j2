@@ -1,0 +1,4 @@
+#DNS
+{% for resources in dhcp|default([]) %}
+{{ resources.serverName }}     IN              A               {{ resources.ipAddress }}  
+{% endfor %}

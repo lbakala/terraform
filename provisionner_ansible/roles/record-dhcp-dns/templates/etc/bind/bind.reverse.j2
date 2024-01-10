@@ -1,0 +1,4 @@
+#DNS
+{{ resources.serverName }}     IN              A               {{ resources.ipAddress }} // reverse
+{% set serveur = resources.split('.')[3] %}
+{{ server }}                   IN              PTR             {{ resources.serverName }}.lizy.home.

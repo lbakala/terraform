@@ -1,0 +1,27 @@
+---
+- name: dhcp configuration
+  template:
+    src: "etc/dhcp/dhcpd.conf.j2"
+    dest: "/etc/dhcp/dhcpd.conf"
+    owner: root
+    group: root
+    mode: 0644
+  notify: isc-dhcp-server reload
+
+- name: dns forward
+  template:
+    src: "etc/bind/forward.j2"
+    dest: "etc/bind/forward"
+    owner: root
+    group: root
+    mode: 0644
+  notify: named reload
+
+- name: dns reverse
+  template:
+    src: "etc/bind/reverse.j2"
+    dest: "etc/bind/reverse"
+    owner: root
+    group: root
+    mode: 0644
+  notify: named reload
