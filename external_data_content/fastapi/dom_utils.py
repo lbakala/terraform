@@ -80,7 +80,7 @@ def checkServerNameInfile(fileName, server_name):
     with open(fileName,'r') as ansible_routeur_host_vars_file:
         host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
 
-    result = next(item for item in host_vars['dhcp'] if item['serverName'] == server_name)
-    response = 0 if result.count == 0 else 1
+    result = [item for item in host_vars['dhcp'] if item['serverName'] == server_name]
+    response = 0 if len(result) == 0 else 1
     return response
              
