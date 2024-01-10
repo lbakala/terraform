@@ -75,3 +75,12 @@ def add_record(vm_name):
     host_vars['dhcp'].append({'serverName':vm_name ,'macAddress':getDom_info['mac'] ,'ipAddress':getDom_info['ip']})
     with open('routeur.yaml','w') as ansible_routeur_host_vars_file:
         yaml.safe_dump(host_vars, ansible_routeur_host_vars_file)
+
+def checkServerNameInfile(fileName, server_name):
+    with open(fileName,'r') as ansible_routeur_host_vars_file:
+        host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
+
+    result = next(item for item in host_vars['dhcp'] if item['serverName'] == server_name)
+    response = 0 if result.count == 0 else 1
+    return response
+             

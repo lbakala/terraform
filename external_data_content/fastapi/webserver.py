@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
+import time
 import dom_utils
 import subprocess
 from pathlib import Path
@@ -35,8 +36,9 @@ async def custom(cady: DataCustom):
 async def provision(server: ServerName):
     server_name = server.server_name
     dom_utils.dom_start(server_name)
-    dom_utils.add_record(server_name)
-    dom_utils.dom_start(server_name)
+    time.sleep(30)
+    if dom_utils.checkServerNameInfile('routeur.yml', server_name) == 0:
+        dom_utils.add_record(server_name)
     subprocess.Popen(["/var/www/html/ansible-playbook.sh", server_name]) 
  
 if __name__ == "__main__":
