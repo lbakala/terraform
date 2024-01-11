@@ -3,7 +3,10 @@ import sys
 import json
 import libvirt
 import yaml
+from pydantic import BaseModel
 from xml.dom import minidom
+from tinydb import TinyDB, Query
+
 
 def libvirt_callback(userdata, err):
     pass
@@ -83,4 +86,16 @@ def checkServerNameInfile(fileName, server_name):
     result = [item for item in host_vars['dhcp'] if item['serverName'] == server_name]
     response = 0 if len(result) == 0 else 1
     return response
-             
+
+def check_server_action(database_file, nom, action):
+    db = TinyDB(database_file)
+    rslt = Query()
+    response = 0 if len(db.search(( rslt.name == nom) & (rslt.action == action ) & (rslt.action == action ))) == 0 else 1
+    return response
+  
+def add_server_action(database_file, nom, action):
+    if check_server_action(database_file, nom, action) == 0:
+        db = TinyDB(database_file)
+        db.insert({'name':nom, 'action':action})
+        
+            
