@@ -1,3 +1,0 @@
-#!/bin/bash
-eval "$(jq -r '@sh "vm_name=\(.vm_name)"')"
-sudo virsh domifaddr --domain ${vm_name} --source agent | sed -e '/172.16/!d' -e 's/\(.*\)v4[ ]*\([0-9].*\)\/.*/{ \"ip\": \"\2\" }/' | jq "."

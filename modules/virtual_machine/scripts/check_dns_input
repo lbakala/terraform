@@ -1,5 +1,0 @@
-#!/bin/bash
-eval "$(jq -r '@sh "vm_name=\(.vm_name)"')"
-result=$(ssh routeur "grep -nr ${vm_name} /etc/bind")
-[[ ${#result} -gt 0 ]] && { out=0;} || { out=1;}
-echo {\"value\": \"$out\"}
