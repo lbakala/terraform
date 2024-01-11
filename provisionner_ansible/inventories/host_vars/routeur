@@ -1,0 +1,13 @@
+dhcp:
+- ipAdress: 172.16.0.254
+  macAdress: 56:12:45:DF
+  serverName: routeur
+- ipAdress: 172.16.0.26
+  macAdress: 56:12:45:DA
+  serverName: airflow
+- ipAdress: 172.16.0.244
+  macAdress: 56:12:46:DF
+  serverName: netopia
+- ipAdress: 172.16.0.59
+  macAdress: A6:12:46:DF
+  serverName: sagem
