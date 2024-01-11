@@ -57,6 +57,7 @@ data external "set_publikey" {
   program = ["python3", "${path.module}/scripts/addpubkey.py"]
   query = {
   pub_key = var.pub_keys
+  disk_volume = "${null_resource.disk_mappings[0].triggers.volume_id}"
   }
 }
 #------------------------------------------------------------------

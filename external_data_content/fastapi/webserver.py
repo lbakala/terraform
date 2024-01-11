@@ -28,9 +28,12 @@ async def custom(cady: DataCustom):
     pub_key = cady.pub_key
     new_disk = cady.new_disk
     p = Path(new_disk)
+    vm_name = p.name.split('.')[0]
     if dom_utils.dom_status(str(p.name.split('.')[0])) == 1:
         dom_utils.dom_shutdown(p)
-    subprocess.Popen(["/var/www/html/pushpubkey.sh", pub_key, new_disk])  
+    subprocess.Popen(["/var/www/html/guestfish.sh", new_disk, pub_key, vm_name]) 
+    response=dom_utils.dom_getIpaddress(vm_name)
+    return response['ip']
 
 @app.post("/provision/")
 async def provision(server: ServerName):
