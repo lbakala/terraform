@@ -10,9 +10,7 @@ variable vm_disk2_size     {}
 variable bastion_host      {}
 variable bastion_user      {}
 variable user              {}
-variable host_password     {}
 variable pubkey            {}
-variable destination       {}
 
 #---
 
@@ -61,10 +59,8 @@ vm_network     = var.vm_network
 vm_vcpu        = var.vm_vcpu
 bastion_host   = var.bastion_host
 bastion_user   = var.bastion_user
-user          = var.user
-host_password  = var.host_password
+user           = var.user
 pubkey         = var.pubkey
-destination    = var.destination
 }
 
 module k8s-node-1 {
@@ -77,9 +73,7 @@ vm_vcpu        = var.vm_vcpu
 bastion_host   = var.bastion_host
 bastion_user   = var.bastion_user
 user           = var.user
-host_password  = var.host_password
 pubkey         = var.pubkey
-destination    = var.destination
 }
 
 module k8s-node-2 {
@@ -92,13 +86,11 @@ vm_vcpu        = var.vm_vcpu
 bastion_host   = var.bastion_host
 bastion_user   = var.bastion_user
 user           = var.user
-host_password  = var.host_password
 pubkey         = var.pubkey
-destination    = var.destination
 }
 
 #---
-output "k8s-mater_ip" { value = module.k8s-master.vm_info }
+output "k8s-mater_ip"  { value = module.k8s-master.vm_info }
 output "k8s-node-1_ip" { value = module.k8s-node-1.vm_info }
 output "k8s-node-2_ip" { value = module.k8s-node-2.vm_info }
 
