@@ -121,7 +121,7 @@ KVM est un hyperviseur de type 1, disponible sur les distributions linux sous la
 
    ```
    terraform init  -var-file=inputs.tfvars
-   terraform aaply -var-file=inputs.tfvars
+   terraform apply -var-file=inputs.tfvars
    ```
 
 Il y'a quatre fichiers dans notre dossier pour la création de la machine virtuelle
@@ -130,3 +130,5 @@ Il y'a quatre fichiers dans notre dossier pour la création de la machine virtue
 * déclaration des variables : variables.tf
 * initialisation des variables
 * instantiation de la création de la machine virtuelle avec les données fournies et les modules disponibles
+
+# Création de modules terraform
