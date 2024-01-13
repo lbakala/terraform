@@ -1,6 +1,6 @@
 # Terraform
 
-Vs avez engage une équipe d'expert  pour mettre en place un environnement de plusieurs serveurs.  Le budget étant limité, vos experts reportent la création du plan de reprise d'activité à une autre fois. ils vous proposent  une solution de sauvegarde des données de votre activité, qui permettrons avec un délais de reconstituer votre infrastruture en cas de sinistre.
+Vous avez engagé une équipe d'expert  pour mettre en place un environnement de plusieurs serveurs.  Le budget étant limité, vos experts reportent la création du plan de reprise d'activité à une autre fois. ils vous proposent  une solution de sauvegarde des données de votre activité, qui permettrons avec un délais de reconstituer votre infrastruture en cas de sinistre.
 
 Une année après le démarrage de votre activité, vous souhaitez augmenter la résilience de votre infrastructure  avec la mise en place d'un plan de reprise d'activité ayant un RTO ( Recovery Time Objectif) faible.
 
@@ -18,26 +18,108 @@ KVM est un hyperviseur de type 1, disponible sur les distributions linux sous la
 
 # Machine virtuelle
 
-```
-Configuration
-Adresse de l'hôte: 192.168.122.1/24
-Server DHCP & DNS :  192.168.122.104/24 + 172.16.0.254/16
-```
+1. Initialisation du projet
+
+   /opt/projet/terraform/vm/main.tf
+
+   ```
+   terraform {
+     required_version = "> 0.8.0"
+       required_providers {
+       libvirt = {
+         source = "dmacvicar/libvirt" 
+       }
+     }
+   }
+
+   provider "libvirt" {
+     uri = "qemu:///system"
+   }
+   ```
+2. Déclarations des variables
+   /opt/projet/terraform/vm/variables.tf
+
+   ```
+   variable vm_name_1         {
+                     description = "nom de la machine"
+   }
+   variable vm_disk           {
+                     description = "tous les diques de la machine virtuelle" 
+   }
+   variable vm_memory         {
+                     description = "la mémoire ram alloué à la machine virtuelle"
+   }
+   variable vm_vcpu           {
+                     description = "vcpu"
+   }   
+   variable vm_network        {
+                     description = "nom du réseau privée"
+   }
+   variable vm_disk_source   {
+                     description = "nom et version de la distribution linux"
+   }
+   variable vm_disk_size     {
+                     description = "la taille du disque à créer"
+   }
+   variable bastion_host      {
+                     description = "adresse du bastion"
+   }
+   variable bastion_user      {
+                     description = "user bastion"
+   }
+   variable pubkey            {
+                     description = "la clé publique à installer dans la machine virtuelle"
+   }
+   ```
+
+   Initialisation des variables
+   /opt/projet/terraform/vm/inputs.tfvars
+
+   ```
+   vm_name_1         = "k8s-master" 
+   vm_memory         = 4096
+   vm_vcpu           = 4
+   vm_network        = "private"
+   vm_disk_size      = 10737418240
+   vm_disk           = ""
+   bastion_host      = "routeur"
+   bastion_user      = "user"
+   user              = "user"
+   pubkey            = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILV/wDRUQ+k3jHx15kc4b8hSY8Xhurp44OM2oHHO3a8C your_email@example.com"
+   ```
+3. fichier de création de la machine
+   /opt/projet/terraform/vm/vm.tf
+
+   ```
+   #déclaration du disque de notre vm
+   module disk1_node1 {
+   source = "../modules/virtual_machine_disk/"
+   vm_disk_name = var.vm_name_1
+   vm_disk_source = var.vm_disk_source
+   vm_disk_size = var.vm_disk_size
+   }
+
+   # déclarartion de notre machine virtuelle
+   module nexus {
+   source         = "../modules/virtual_machine/"
+   vm_name        = var.vm_name_1
+   vm_disk        = [ module.disk1_node1.vm_disk_id ]
+   vm_memory      = var.vm_memory
+   vm_network     = var.vm_network
+   vm_vcpu        = var.vm_vcpu
+   bastion_host   = var.bastion_host
+   bastion_user   = var.bastion_user
+   user           = var.user
+   host_password  = var.host_password
+   pubkey         = var.pubkey
+   destination    = var.destination
+   }
 
 
+   ```
+4. Matérialisation de la machine virtuelle
 
-création des machines virtuelles pour kubernetes
-
-Terraform est l'un des outils indispensables pour le provisionning des briques nécessaires à la mise en place d'une infrastructure. Il est très facile à apprehender et permet de créer une infrastructure rapidement sans requérir la présence d'un architect. C'est comme une boite de conserve : elle ne nécessite pas des connaisances en cuisine pour être consommé.
-
-L'architect a mené une reflexion et a construit une infrastructure as a code prêt à l'emploi pour repondre à un besoin.
-
-Ici, le code permet de :
-
-1. Créer 3 machines virtuelles sur KVM
-2. Créer un utilisateur user
-3. Installer la clé publique SSH pour user
-4. Désactiver IPV6
-5. Ajouter la configuration ssh de chaque machine dans /etc/ssh/ssh_config.d/
-6. Réserver l'ip attribuer dans le serveur DHCP
-7. Assigner le nom DNS dans le serveur BIN9
+   ```
+   terraform init  -var-file=inputs.tfvars
+   terraform aaply -var-file=inputs.tfvars
+   ```
