@@ -100,7 +100,7 @@ KVM est un hyperviseur de type 1, disponible sur les distributions linux sous la
    }
 
    # déclarartion de notre machine virtuelle
-   module nexus {
+   module k8s-master {
    source         = "../modules/virtual_machine/"
    vm_name        = var.vm_name_1
    vm_disk        = [ module.disk1_node1.vm_disk_id ]
