@@ -129,4 +129,4 @@ Il y'a quatre fichiers dans notre dossier pour la création de la machine virtue
 * déclarartion du provider utilisé : main.tf
 * déclaration des variables : variables.tf
 * initialisation des variables
-* instantiation de la création de la machine virtuelle en utilisant les données fournies et les modules disponibles
+* instantiation de la création de la machine virtuelle avec les données fournies et les modules disponibles
