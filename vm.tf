@@ -1,57 +1,68 @@
-variable vm_name_1         {}
-variable vm_name_2         {}
-variable vm_name_3         {}
-variable vm_disk           {}
-variable vm_memory         {}
-variable vm_vcpu           {}   
-variable vm_network        {}
-variable vm_disk1_source   {}
-variable vm_disk2_size     {}
-variable bastion_host      {}
-variable bastion_user      {}
-variable user              {}
-variable pubkey            {}
+variable vm_name_1 {
+  type = string
+  description = "nom de la machine virtuelle"
+}
 
-#---
+variable vm_name_2 {
+  type = string
+  description = "nom de la machine virtuelle"
+}
+
+variable vm_disk {
+  type = list
+  description = "liste des disques pour une machine virtuelle"
+}
+
+variable vm_memory         {
+  type = string
+  description = "capacité de la mémoire"
+}
+
+variable vm_vcpu {
+  type = number
+  description = "nombre de vcpu"
+
+}
+
+variable vm_network { 
+  type = string
+  description = "nom de réseau"
+}
+
+variable vm_disk1_source   {
+  type = string
+  description = "nom de la distribution 'debian12'"
+}
+
+variable vm_disk_size {
+  type = number
+  description = "taille du disque"
+}
+
+variable bastion_host {
+  type = string
+  description = "adresse du serveur de rebond"
+}
+
+variable bastion_user {
+  type = string
+  description = "utilisateur serveur de rebond"
+}
+
+variable pubkey {
+  type = string
+  description = "ssh guest publique key"
+}
 
 module disk1_node1 {
-source = "./modules/virtual_machine_disk"
+source = "../modules/virtual_machine_disk/v0.1"
 vm_disk_name = var.vm_name_1
-vm_disk_source = var.vm_disk1_source
+vm_disk_source = "debian12"
+vm_disk_size = 10737418240
 }
 
-module disk2_node1 {
-source = "./modules/virtual_machine_disk"
-vm_disk_name = "${var.vm_name_1}v2"
-vm_disk_size = var.vm_disk2_size
-}
-
-module disk1_node2 {
-source = "./modules/virtual_machine_disk"
-vm_disk_name = var.vm_name_2
-vm_disk_source = var.vm_disk1_source
-}
-
-module disk2_node2 {
-source = "./modules/virtual_machine_disk"
-vm_disk_name = "${var.vm_name_2}v2"
-vm_disk_size = var.vm_disk2_size
-}
-
-module disk1_node3 {
-source = "./modules/virtual_machine_disk"
-vm_disk_name = var.vm_name_3
-vm_disk_source = var.vm_disk1_source
-}
-
-module disk2_node3 {
-source = "./modules/virtual_machine_disk"
-vm_disk_name = "${var.vm_name_3}v2"
-vm_disk_size = var.vm_disk2_size
-}
-
-module k8s-master {
-source         = "./modules/virtual_machine"
+module airflow2 {
+source         = "../modules/virtual_machine/disk5/v0.2"
 vm_name        = var.vm_name_1
 vm_disk        = [ module.disk1_node1.vm_disk_id ]
 vm_memory      = var.vm_memory
@@ -59,38 +70,35 @@ vm_network     = var.vm_network
 vm_vcpu        = var.vm_vcpu
 bastion_host   = var.bastion_host
 bastion_user   = var.bastion_user
-user           = var.user
 pubkey         = var.pubkey
 }
 
-module k8s-node-1 {
-source         = "./modules/virtual_machine"
+
+module disk1_node2 {
+source = "../modules/virtual_machine_disk/v0.1"
+vm_disk_name = var.vm_name_2
+vm_disk_source = var.vm_disk1_source
+vm_disk_size = var.vm_disk_size
+}
+
+module controller {
+source         = "../modules/virtual_machine/disk5/v0.2"
 vm_name        = var.vm_name_2
-vm_disk        = [ module.disk1_node2.vm_disk_id, module.disk2_node2.vm_disk_id ]
+vm_disk        = [ module.disk1_node2.vm_disk_id ]
 vm_memory      = var.vm_memory
 vm_network     = var.vm_network
 vm_vcpu        = var.vm_vcpu
 bastion_host   = var.bastion_host
 bastion_user   = var.bastion_user
-user           = var.user
 pubkey         = var.pubkey
 }
 
-module k8s-node-2 {
-source         = "./modules/virtual_machine"
-vm_name        = var.vm_name_3
-vm_disk        = [ module.disk1_node3.vm_disk_id, module.disk2_node3.vm_disk_id]
-vm_memory      = var.vm_memory
-vm_network     = var.vm_network
-vm_vcpu        = var.vm_vcpu
-bastion_host   = var.bastion_host
-bastion_user   = var.bastion_user
-user           = var.user
-pubkey         = var.pubkey
+output "airflow_ip" {
+  value = module.airflow2.ipAddress 
+  description = "adresse ip serveur airflow"
 }
-
-#---
-output "k8s-mater_ip"  { value = module.k8s-master.vm_info }
-output "k8s-node-1_ip" { value = module.k8s-node-1.vm_info }
-output "k8s-node-2_ip" { value = module.k8s-node-2.vm_info }
+output "controller_ip" {
+  value = module.controller.ipAddress 
+  description = "adresse ip serveur controller"
+}
 
