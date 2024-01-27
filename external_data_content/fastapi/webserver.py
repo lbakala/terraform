@@ -1,54 +1,56 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
-import time
 import dom_utils
-import subprocess
+import time
+import json
 from pathlib import Path
+from fastapi.responses import JSONResponse
 
 app = FastAPI()
+database_file = '/var/www/html/database.json'
+host_vars = '/var/www/html/host_vars'
 class VolumeChange(BaseModel):
     old_disk: str
     new_disk: str
-class DataCustom(BaseModel):
     pub_key: str
-    new_disk: str
 class ServerName(BaseModel):
-    server_name: str
+    machine: str
 @app.post("/growfs/")
 async def growfs(disk: VolumeChange):
     old_disk = disk.old_disk
     new_disk = disk.new_disk
+    pub_key = disk.pub_key
     p = Path(new_disk)
     vm_name = p.name.split('.')[0]
-    if (dom_utils.dom_status(str(p.name.split('.')[0])) == 0 & dom_utils.check_server_action('/var/www/html/database.json', vm_name, 'grows') == 0 ):
-        subprocess.Popen(["/var/www/html/resize.sh", old_disk, new_disk])
-        response = {"msg": "grows fs are succesfully"}
-    else:
-        response = {"msg": "disk are already growing"}
-    return response
-
-@app.post("/custom/")
-async def custom(cady: DataCustom):
-    pub_key = cady.pub_key
-    new_disk = cady.new_disk
-    p = Path(new_disk)
-    vm_name = p.name.split('.')[0]
-    if dom_utils.check_server_action('/var/www/html/database.json', vm_name, 'pushsshkey') == 0:
-        if dom_utils.dom_status(str(p.name.split('.')[0])) == 1:
-            dom_utils.dom_shutdown(p)
+    if dom_utils.check_server_action(database_file, vm_name, 'growfs') == 0:
+        if dom_utils.dom_status(vm_name) == 1:
+            dom_utils.dom_shutdown(vm_name)
             time.sleep(20)
-        subprocess.Popen(["/var/www/html/guestfish.sh", new_disk, pub_key, vm_name]) 
-    response=dom_utils.dom_getIpaddress(vm_name)
-    return response['ip']
+        dom_utils.virt_resize(old_disk, new_disk)
+        dom_utils.add_server_action(database_file, vm_name, 'growfs')
+        time.sleep(30)
+    if dom_utils.check_server_action(database_file, vm_name, 'addsshpubkey') == 0:
+        if dom_utils.dom_status(vm_name) == 1:
+            dom_utils.dom_shutdown(vm_name)
+            time.sleep(20)
+        dom_utils.virt_customize(pub_key, new_disk)
+        dom_utils.add_server_action(database_file, vm_name, 'addsshpubkey')
+        print("fin des actions grows - demarrage du système en cours ...")
+        time.sleep(60)
+    dom_utils.dom_start(vm_name)
+    time.sleep(20)
+    if dom_utils.checkServerNameInfile(host_vars, vm_name) == 0:
+        dom_utils.add_record(host_vars, vm_name)
+    value = { 
+        "ipAddress": dom_utils.getIp(vm_name),
+    }
+    return JSONResponse(value)
 
-@app.post("/provision/")
-async def provision(server: ServerName):
-    server_name = server.server_name
-    dom_utils.dom_start(server_name)
-    time.sleep(30)
-    if dom_utils.checkServerNameInfile('/var/www/html/inventories/host_vars/routeur.yml', server_name) == 0:
-        dom_utils.add_record(server_name)
-    subprocess.Popen(["/var/www/html/ansible-playbook.sh", server_name]) 
+@app.post("/destroy/")
+async def provision(computer: ServerName):
+    machine = computer.machine
+    dom_utils.remove_server(database_file, host_vars, machine)
+
  
 if __name__ == "__main__":
     import uvicorn

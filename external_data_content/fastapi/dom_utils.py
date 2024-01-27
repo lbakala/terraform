@@ -3,10 +3,9 @@ import sys
 import json
 import libvirt
 import yaml
-from pydantic import BaseModel
+import subprocess
 from xml.dom import minidom
 from tinydb import TinyDB, Query
-
 
 def libvirt_callback(userdata, err):
     pass
@@ -71,31 +70,84 @@ def dom_getIpaddress(vm_name):
     return json.dumps(res[0], indent=4)
     conn.close() 
 
-def add_record(vm_name):
-    with open('routeur.yaml','r') as ansible_routeur_host_vars_file:
-        host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
-    getDom_info = dom_getIpaddress(vm_name)    
-    host_vars['dhcp'].append({'serverName':vm_name ,'macAddress':getDom_info['mac'] ,'ipAddress':getDom_info['ip']})
-    with open('routeur.yaml','w') as ansible_routeur_host_vars_file:
-        yaml.safe_dump(host_vars, ansible_routeur_host_vars_file)
+def virt_resize(old_disk, new_disk):
+    subprocess.Popen(["sudo","virt-resize", "--expand", "/dev/sda2", old_disk, new_disk])
 
-def checkServerNameInfile(fileName, server_name):
-    with open(fileName,'r') as ansible_routeur_host_vars_file:
-        host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
-
-    result = [item for item in host_vars['dhcp'] if item['serverName'] == server_name]
-    response = 0 if len(result) == 0 else 1
-    return response
+def virt_customize(pub_key, dom_disk):
+    subprocess.Popen(["sudo", 
+                      "virt-customize", "-a", dom_disk, 
+                      "--touch", "/home/user/.ssh/authorized_keys", 
+                      "--append-line", "/home/user/.ssh/authorized_keys:"+pub_key, 
+                      "--firstboot-command", "chown user:user -R /home/user/.ssh/; chmod  600 /home/user/.ssh/authorized_keys",
+                      "--touch", "/etc/sudoers.d/users",
+                      "--append-line", "/etc/sudoers.d/users:user ALL=(ALL) NOPASSWD: ALL"
+                      ])
 
 def check_server_action(database_file, nom, action):
     db = TinyDB(database_file)
     rslt = Query()
-    response = 0 if len(db.search(( rslt.name == nom) & (rslt.action == action ) & (rslt.action == action ))) == 0 else 1
+    response = 0 if len(db.search(( rslt.name == nom) & (rslt.action == action ))) == 0 else 1
     return response
   
 def add_server_action(database_file, nom, action):
     if check_server_action(database_file, nom, action) == 0:
         db = TinyDB(database_file)
         db.insert({'name':nom, 'action':action})
-        
-            
+
+def add_record(host_vars_file, vm_name):
+    with open(host_vars_file,'r') as ansible_routeur_host_vars_file:
+        host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
+    getDom_info =json.loads(dom_getIpaddress(vm_name)) 
+    #print(host_vars)
+    host_vars['dhcp'].append({'serverName':vm_name, 'macAddress':getDom_info['mac'], 'ipAddress':getDom_info['ip']})
+    with open(host_vars_file,'w') as ansible_routeur_host_vars_file:
+        yaml.safe_dump(host_vars, ansible_routeur_host_vars_file)
+    ansible_playbook()
+
+def checkServerNameInfile(fileName, server_name):
+    try:
+        with open(fileName,'r') as ansible_routeur_host_vars_file:
+            host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
+        result = [item for item in host_vars['dhcp'] if item['serverName'] == server_name]
+        response = 0 if len(result) == 0 else 1
+    except:
+        response = 0
+    return response
+
+def ansible_playbook():
+    #subprocess.Popen(["source", "/home/user/python/virtual/environment/bin/activate"])
+    #subprocess.Popen(["export", "ANSIBLE_CALLBACK_PLUGINS=\"$(python3 -m ara.setup.callback_plugins)\""], cwd="/home/user/python/virtual/environment/bin")
+    subprocess.Popen(["ansible-playbook", "-i", "inventories/hosts", "playbooks/dhcp-dns.yml", "-D", "-u", "user", "--tags=dhcp"], cwd="/var/www/html")
+
+def remove_vm_name_on_host_vars(host_vars_file, server_name):
+    try:
+        with open(host_vars_file,'r') as ansible_routeur_host_vars_file:
+            host_vars = yaml.safe_load(ansible_routeur_host_vars_file) 
+        result = [item for item in host_vars['dhcp'] if not item['serverName'] == server_name]
+        list_d = {"dhcp": []}
+        for item in result: list_d["dhcp"].append(item)
+        with open(host_vars_file,'w') as ansible_routeur_host_vars_file:
+            yaml.safe_dump(list_d, ansible_routeur_host_vars_file)
+        response = 0
+        ansible_playbook()
+    except:
+        response = 1
+    return response
+
+def remove_server_action(database_file, nom):
+    db = TinyDB(database_file)
+    rslt = Query()
+    db.remove(rslt.name == nom)
+
+def remove_server(database_file, host_vars_file, vm_name):
+    remove_server_action(database_file, vm_name)
+    remove_vm_name_on_host_vars(host_vars_file, vm_name)
+    ansible_playbook()
+
+def getIp(vm_name):
+    getDom_info = json.loads(dom_getIpaddress(vm_name))
+
+    return getDom_info['ip']
+
+
+   
