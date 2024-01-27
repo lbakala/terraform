@@ -1,134 +1,45 @@
-# Terraform
+## Requirements
 
-Vous avez engagé une équipe d'expert  pour mettre en place un environnement de plusieurs serveurs.  Le budget étant limité, vos experts reportent la création du plan de reprise d'activité à une autre fois. ils vous proposent  une solution de sauvegarde des données de votre activité, qui permettrons avec un délais de reconstituer votre infrastruture en cas de sinistre.
+| Name | Version |
+|------|---------|
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | > 0.8.0 |
+| <a name="requirement_fastapi"></a> [fastapi](#requirement\_fastapi) | > 3.7 |
+| <a name="requirement_libguestfs"></a> [libguestfs](#requirement\_libguestfs) | > 1.48 |
+| <a name="requirement_libvirt"></a> [libvirt](#requirement\_libvirt) | > 0.7.1 |
 
-Une année après le démarrage de votre activité, vous souhaitez augmenter la résilience de votre infrastructure  avec la mise en place d'un plan de reprise d'activité ayant un RTO ( Recovery Time Objectif) faible.
+## Providers
 
-En reponse à votre demande, l'équipe vous **facture** la création d'une autre infrastruture, identique à l'existant, dans un autre centre de données.
+| Name | Version |
+|------|---------|
+| <a name="provider_libvirt"></a> [libvirt](#provider\_libvirt) | n/a |
 
-# Qu'est ce que terraform
-
-Terraform est un outils permettant de concevoir  une infrastructure dematérialisée pouvant être déployer à l'identique sur un materiel choisi.  Il  améliore le temps de conception d'une infrastructure et optimise les couts.
-
-L'exemple suivant  aborde l'écriture du code terraform pour la création d'une machine virtuelle sur l'hyperviseur KVM (libvirt)
-
-# KVM kernel virtual Machine
-
-KVM est un hyperviseur de type 1, disponible sur les distributions linux sous la forme d'une application native. Vous pouvez l'installer et l'utiliser  si vous disposer des ressources ( RAM, CPU et Disques) necessaires. En effet une machine  virtuelle est une emmulation d'une machine physique. Elle partage les ressources de la machine physique en plusieurs machines virtuelles.  La suite de cet exemple suppose que vous disposez d'un hôte KVM fonctionnelle.
-
-# Machine virtuelle
-
-1. Initialisation du projet
-
-   /opt/projet/terraform/vm/main.tf
-
-   ```
-   terraform {
-     required_version = "> 0.8.0"
-       required_providers {
-       libvirt = {
-         source = "dmacvicar/libvirt" 
-       }
-     }
-   }
-
-   provider "libvirt" {
-     uri = "qemu:///system"
-   }
-   ```
-2. Déclarations des variables
-   /opt/projet/terraform/vm/variables.tf
-
-   ```
-   variable vm_name_1         {
-                     description = "nom de la machine"
-   }
-   variable vm_disk           {
-                     description = "tous les diques de la machine virtuelle" 
-   }
-   variable vm_memory         {
-                     description = "la mémoire ram alloué à la machine virtuelle"
-   }
-   variable vm_vcpu           {
-                     description = "vcpu"
-   }   
-   variable vm_network        {
-                     description = "nom du réseau privée"
-   }
-   variable vm_disk_source   {
-                     description = "nom et version de la distribution linux"
-   }
-   variable vm_disk_size     {
-                     description = "la taille du disque à créer"
-   }
-   variable bastion_host      {
-                     description = "adresse du bastion"
-   }
-   variable bastion_user      {
-                     description = "user bastion"
-   }
-   variable pubkey            {
-                     description = "la clé publique à installer dans la machine virtuelle"
-   }
-   ```
-
-   Initialisation des variables
-   /opt/projet/terraform/vm/inputs.tfvars
-
-   ```
-   vm_name_1         = "k8s-master" 
-   vm_memory         = 4096
-   vm_vcpu           = 4
-   vm_network        = "private"
-   vm_disk_size      = 10737418240
-   vm_disk           = ""
-   bastion_host      = "routeur"
-   bastion_user      = "user"
-   user              = "user"
-   pubkey            = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILV/wDRUQ+k3jHx15kc4b8hSY8Xhurp44OM2oHHO3a8C your_email@example.com"
-   ```
-3. fichier de création de la machine
-   /opt/projet/terraform/vm/vm.tf
-
-   ```
-   #déclaration du disque de notre vm
-   module disk1_node1 {
-   source = "../modules/virtual_machine_disk/"
-   vm_disk_name = var.vm_name_1
-   vm_disk_source = var.vm_disk_source
-   vm_disk_size = var.vm_disk_size
-   }
-
-   # déclarartion de notre machine virtuelle
-   module k8s-master {
-   source         = "../modules/virtual_machine/"
-   vm_name        = var.vm_name_1
-   vm_disk        = [ module.disk1_node1.vm_disk_id ]
-   vm_memory      = var.vm_memory
-   vm_network     = var.vm_network
-   vm_vcpu        = var.vm_vcpu
-   bastion_host   = var.bastion_host
-   bastion_user   = var.bastion_user
-   user           = var.user
-   host_password  = var.host_password
-   pubkey         = var.pubkey
-   destination    = var.destination
-   }
+## Modules
 
 
-   ```
-4. Matérialisation de la machine virtuelle
+| Name                                                                    | Source                                | Version |
+| ----------------------------------------------------------------------- | ------------------------------------- | ------- |
+| <a name="module_airflow2"></a> [airflow2](#module\_airflow2)            | ../modules/virtual_machine/disk5/v0.2 | n/a     |
+| <a name="module_disk1_node1"></a> [disk1\_node1](#module\_disk1\_node1) | ../modules/virtual_machine_disk/v0.1  | n/a     |
 
-   ```
-   terraform init  -var-file=inputs.tfvars
-   terraform apply -var-file=inputs.tfvars
-   ```
+## Inputs
 
-Il y'a quatre fichiers dans notre dossier pour la création de la machine virtuelle
 
-* déclarartion du provider utilisé : main.tf
-* déclaration des variables : variables.tf
-* initialisation des variables
-* instantiation de la création de la machine virtuelle avec les données fournies et les modules disponibles
+| Name                                                                                | Description                                  | Type     | Default | Required |
+| ----------------------------------------------------------------------------------- | -------------------------------------------- | -------- | ------- | :------: |
+| <a name="input_bastion_host"></a> [bastion\_host](#input\_bastion\_host)            | adresse du serveur de rebond                 | string   | n/a     |   yes   |
+| <a name="input_bastion_user"></a> [bastion\_user](#input\_bastion\_user)            | utilisateur serveur de rebond                | `string` | n/a     |   yes   |
+| <a name="input_pubkey"></a> [pubkey](#input\_pubkey)                                | ssh guest publique key                       | `string` | n/a     |   yes   |
+| <a name="input_vm_disk"></a> [vm\_disk](#input\_vm\_disk)                           | liste des disques pour une machine virtuelle | `list`   | n/a     |   yes   |
+| <a name="input_vm_disk1_source"></a> [vm\_disk1\_source](#input\_vm\_disk1\_source) | nom de la distribution 'debian12'            | `string` | n/a     |   yes   |
+| <a name="input_vm_disk_size"></a> [vm\_disk\_size](#input\_vm\_disk\_size)          | taille du disque                             | `number` | n/a     |   yes   |
+| <a name="input_vm_memory"></a> [vm\_memory](#input\_vm\_memory)                     | capacité de la mémoire                     | `string` | n/a     |   yes   |
+| <a name="input_vm_name_1"></a> [vm\_name\_1](#input\_vm\_name\_1)                   | nom de la machine virtuelle                  | `string` | n/a     |   yes   |
+| <a name="input_vm_network"></a> [vm\_network](#input\_vm\_network)                  | nom de réseau                               | `string` | n/a     |   yes   |
+| <a name="input_vm_vcpu"></a> [vm\_vcpu](#input\_vm\_vcpu)                           | nombre de vcpu                               | `number` | n/a     |   yes   |
 
-# Création de modules terraform
+## Outputs
+
+
+| Name                                                                          | Description                   |
+| ----------------------------------------------------------------------------- | ----------------------------- |
+| <a name="output_airflow_ip"></a> [airflow\_ip](#output\_airflow\_ip)          | adresse ip serveur airflow    |
